@@ -26,4 +26,24 @@ class ScrabbleTest {
         Assertions.assertEquals("a", scrabble.scrabble("a"));
     }
 
+    @Test
+    void scrabble_NoMatchingWord() {
+        Assertions.assertEquals("", scrabble.scrabble("zzzz"));
+    }
+
+    @Test
+    void scrabble_LongWordTest() {
+        Assertions.assertEquals("recommendation", scrabble.scrabble("recommendation"));
+    }
+
+    @Test
+    void scrabble_InputCharsLongerThanLongestWord() {
+        Assertions.assertNotNull( scrabble.scrabble("recommendationrecommendation") );
+    }
+
+    @Test
+    void scrabble_RandomWordTest() {
+        Assertions.assertEquals("false", scrabble.scrabble("falsee"));
+    }
+
 }
