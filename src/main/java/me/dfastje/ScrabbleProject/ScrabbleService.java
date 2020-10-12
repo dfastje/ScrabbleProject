@@ -32,9 +32,9 @@ import java.util.stream.Stream;
  *      Javadoc variable reference: https://stackoverflow.com/questions/7868991/how-can-i-reference-the-value-of-a-final-static-field-in-the-class
  */
 @Service
-public class ScrabbleBruteForceService {
+public class ScrabbleService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScrabbleBruteForceService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ScrabbleService.class);
 
     public static final String wordFilePath = "words.txt";
 
@@ -44,7 +44,7 @@ public class ScrabbleBruteForceService {
     /**
      * Constructor. This will pull in all the words inside the file referenced by {@value wordFilePath}
      */
-    public ScrabbleBruteForceService() {
+    public ScrabbleService() {
         List<String> wordList = readWordsFromFile( wordFilePath );
         this.wordLengthMap = sortWordsByLength( wordList );
     }
