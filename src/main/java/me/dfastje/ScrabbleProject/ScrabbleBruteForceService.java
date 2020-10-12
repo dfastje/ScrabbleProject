@@ -18,15 +18,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- *  Runtime of this brute force solution is
- *      O( C-squared * W ) where C=LengthOfInputCharacters and W is the number of words to iterate over
+ *  This implementation of "find the longest word from these characters" does the reverse of the TRIE
+ *      approach where instead of searching for "combinations of the input letters", we search the list of possible
+ *      words starting with the longest words and getting smaller.
  *
+ *  Runtime: Worst possible runtime is O( N^3 ), where N is the number of characters (3-tiers of nested for-loops over N)
  *
  *  Random things I've looked up:
  *      Words taken from https://www.ef.com/wwen/english-resources/english-vocabulary/top-3000-words/
  *      File reading adapted from: https://mkyong.com/java/java-how-to-read-a-file-into-a-list/
  *      Getting file from resources directory: https://mkyong.com/java/java-read-a-file-from-resources-folder/
- *      Default springboot logging: https://www.baeldung.com/spring-boot-logging
+ *      Default springboot logger: https://www.baeldung.com/spring-boot-logging
  *      Javadoc variable reference: https://stackoverflow.com/questions/7868991/how-can-i-reference-the-value-of-a-final-static-field-in-the-class
  */
 @Service
@@ -48,9 +50,9 @@ public class ScrabbleBruteForceService {
     }
 
     /**
-     * Primary entrypoint method using BRUTE FORCE solution.
+     * Primary entry point method using BRUTE FORCE solution.
      *  NOTE: This method prioritizes words of the same length in alphabetical order
-     *  NOTE: This method is capitalization sensitive
+     *  NOTE: This method is capitalization sensitive (no char validation check)
      *
      * @param inputChars - String of characters that will be used to find the longest possible word
      * @return
@@ -83,13 +85,14 @@ public class ScrabbleBruteForceService {
     /**
      * Constructor helper method used to read words from a text file and put them into a list
      *
-     * @param fileNameInResources
-     * @returnsd
+     * @param fileNameInResources - String reference to the list of words for Scrabble to use. See {@value wordFilePath }
+     * @return All words contained in the file
      */
     private List<String> readWordsFromFile(String fileNameInResources){
         List<String> wordList;
-        URL fileURL = getClass().getClassLoader().getResource( wordFilePath );
-        try( Stream<String> lines = Files.lines(Paths.get(fileURL.toURI())) ) {
+        URL fileURL = getClass().getClassLoader().getResource( fileNameInResources );
+        assert fileURL != null;
+        try(Stream<String> lines = Files.lines(Paths.get(fileURL.toURI())) ) {
             wordList = lines.collect(Collectors.toList());
         } catch (IOException | URISyntaxException e) {
             logger.error("Application errored out on Word Imports", e);
@@ -101,8 +104,8 @@ public class ScrabbleBruteForceService {
     /**
      * Helper method for the constructor to take a list of words and output a length sorted map of words
      *
-     * @param wordList
-     * @return
+     * @param wordList list of all possible words for the scrabble method to choose from
+     * @return Map of all possible words separated out by word length
      */
     private Map<Integer, List<String>> sortWordsByLength(List<String> wordList){
         Map<Integer, List<String>> wordLengthMap = new ConcurrentHashMap<>();
@@ -123,24 +126,24 @@ public class ScrabbleBruteForceService {
 
     /**
      * Primary logic comparison method in which we compare each word against the inputCharacters to see if the
-     *  wordToCheck can be constructed from inputChars
+     *  wordToCheck can be constructed from inputCharMap
      *
      *  NOTE: runtime of this method
      *      C = number of characters in word
      *
-     * @param wordToCheck
-     * @param inputChars
-     * @return
+     * @param wordToCheck - input Word to verify can be built using Chars in inputCharMap
+     * @param inputCharMap - input characters broken out into a map between each Character and its occurrence number
+     * @return boolean stating whether or not the input word can be built using the input characters
      */
-    private boolean checkWordAgainstCharacters(String wordToCheck, Map<Character, Integer> inputChars){
+    private boolean checkWordAgainstCharacters(String wordToCheck, Map<Character, Integer> inputCharMap){
         Map<Character, Integer> characterCountOfWordToCheck = breakWordIntoCharCountMap(wordToCheck);
 
         for ( Map.Entry<Character, Integer> characterEntry: characterCountOfWordToCheck.entrySet() ) {
             Character characterKey = characterEntry.getKey();
-            if (!inputChars.containsKey( characterKey )){ //Exists check
+            if (!inputCharMap.containsKey( characterKey )){ //Exists check
                 return false;
             }
-            if ( characterEntry.getValue() > inputChars.get( characterKey )){ //Count check
+            if ( characterEntry.getValue() > inputCharMap.get( characterKey )){ //Count check
                 return false;
             }
         }
@@ -151,8 +154,8 @@ public class ScrabbleBruteForceService {
     /**
      * Helper method used to break the input character string of {@link #scrabble(String inputChars)} into its component
      *  character occurrences to help with analyzing other words.
-     * @param charString
-     * @return
+     * @param charString - String to deconstruct into its component characters
+     * @return Map<Character, Integer> deconstruction of the input String of characters
      */
     private Map<Character, Integer> breakWordIntoCharCountMap(String charString){
         Map<Character, Integer> charCountMap = new HashMap<>();
